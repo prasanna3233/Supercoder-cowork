@@ -1,0 +1,48 @@
+sdef project_name = 'flowworks'
+def project_name_ko = '플로우웍스'
+def AWS_REGION = 'ap-northeast-2'
+
+pipeline {
+    agent any
+
+    environment {
+        AWS_ACCESS_KEY_ID = 'AKIAXOUTM6DFK2DSLDVA'
+        AWS_SECRET_ACCESS_KEY = credentials('indinity_awsSecretAccessKey')
+        AWS_DEFAULT_REGION = AWS_REGION
+    }
+
+    stages {
+        stage('Decide Deploy To') {
+            steps {
+                script {
+                    def deployTo = ''
+                    switch (env.BRANCH_NAME) {
+                        case 'master':
+                            deployTo = 'prod'
+                            break
+                        case 'develop':
+                            deployTo = 'dev'
+                            break
+                        case 'qa':
+                            deployTo = 'qa'
+                            break
+                        default:
+                            error "Unsupported branch: ${env.BRANCH_NAME}"
+                    }
+                    DEPLOY_TO = deployTo
+                }
+                echo "DEPLOY_TO: ${DEPLOY_TO}"
+            }
+        }
+
+        stage('Pull git repository and check updates') {
+            steps {
+                echo 'Cloning Repository'
+                git url: env.GIT_URL, branch: env.BRANCH_NAME
+                // Add additional steps to check updates if needed
+            }
+        }
+
+        // Add more stages as needed
+    }
+}
